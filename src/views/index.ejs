@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Page</title>
+  <link rel="stylesheet" href="/styles.css"> <!-- Link to your CSS (optional) -->
+</head>
+<body>
+  <h1>Welcome to My Express App</h1>
+  <p>This is the home page of your application.</p>
+
+  <ul>
+    <li><a href="/attendance/12345678">Attendance Records</a></li>
+    <h1>Attendance Records</h1>
+    <h2 id="name"></h2>
+    <table id="attendanceTable">
+        <thead>
+            <tr>
+                <th>Course ID</th>
+                <th>Attendance Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table rows will be populated dynamically -->
+        </tbody>
+    </table>
+    <li><a href="/appeal">Appeal Records</a></li>
+    <h1>Appeals List</h1>
+    <table id="appealsTable">
+        <thead>
+            <tr>
+                <th>Appeal ID</th>
+                <th>UIN</th>
+                <th>Course ID</th>
+                <th>Check-In Time</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Student Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table rows will be populated dynamically -->
+        </tbody>
+    </table>
+    <h1>Submit Appeal</h1>
+    <form id="appealForm" action="/appeal/new" method="POST">
+        <!-- Dropdown for courseId -->
+        <label for="courseId">Course ID:</label>
+        <select id="courseId" name="courseId" required>
+        </select>
+        <br><br>
+
+        <!-- Input for UIN -->
+        <label for="uin">UIN:</label>
+        <input type="number" id="uin" name="uin" required>
+        <br><br>
+
+        <!-- Input for Check-In Time -->
+        <label for="checkInTime">Check-In Time:</label>
+        <input type="datetime-local" id="checkInTime" name="checkInTime" required>
+        <br><br>
+
+        <!-- Input for Reason -->
+        <label for="reason">Reason:</label>
+        <textarea id="reason" name="reason" rows="4" cols="50" required></textarea>
+        <br><br>
+
+        <!-- Submit and Reset Buttons -->
+        <button type="submit">Submit Appeal</button>
+        <button type="reset">Reset Form</button>
+    </form>
+    <!-- Add more links to other parts of your app -->
+  </ul>
+  <script>
+    async function fetchAttendance() {
+        try {
+            const response = await fetch('/attendance/12345678');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            
+            const attendanceTableBody = document.querySelector('#attendanceTable tbody');
+
+            // Track courses with attendance
+            const attendedCourses = new Set(data.attendance.map(record => record.courseId));
+            
+            // Populate the table
+            data.courses.forEach(course => {
+                const row = document.createElement('tr');
+                const attendanceRecord = data.attendance.find(record => record.courseId === course.courseId);
+                const attendanceDate = attendanceRecord ? new Date(attendanceRecord.date).toLocaleString() : 'N/A';
+
+                row.innerHTML = `
+                    <td>${course.courseId}</td>
+                    <td>${attendanceDate}</td>
+                `;
+                attendanceTableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error fetching attendance:', error);
+        }
+    }
+    // Fetch courseId data from the API
+    async function fetchCourseIds() {
+        try {
+            const response = await fetch('/attendance/12345678');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const res = await response.json();
+            const courses = res.courses;
+            
+            // Populate the dropdown
+            const courseIdSelect = document.getElementById('courseId');
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.courseId;
+                option.textContent = course.courseId;
+                courseIdSelect.appendChild(option);
+            });
+            document.getElementById('name').textContent = res.name;
+        } catch (error) {
+            console.error('Error fetching course IDs:', error);
+        }
+    }
+
+    async function fetchAppeals() {
+        try {
+            const response = await fetch('/appeal');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            
+            // Populate the table with the appeals data
+            const appealsTableBody = document.querySelector('#appealsTable tbody');
+            data.appeals.forEach(appeal => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${appeal._id}</td>
+                    <td>${appeal.uin}</td>
+                    <td>${appeal.courseId}</td>
+                    <td>${new Date(appeal.checkInTime).toLocaleString()}</td>
+                    <td>${appeal.reason}</td>
+                    <td>${appeal.status}</td>
+                    <td>${appeal.student.name}</td>
+                    <td>
+                        ${appeal.status == 'PENDING' ? `<button onclick="processAppeal('${appeal._id}', 'APPROVED')">Approve</button>` : ''}
+                        ${appeal.status == 'PENDING' ? `<button onclick="processAppeal('${appeal._id}', 'REJECTED')">Reject</button>` : ''}
+                    </td>
+                    <td>
+                    </td>
+                `;
+                appealsTableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error fetching appeals:', error);
+        }
+    }
+
+    async function processAppeal(appealId, status) {
+        try {
+            const response = await fetch('/appeal/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ _id: appealId, status })
+            });
+            
+            if (response.ok) {
+                alert('Appeal processed successfully!');
+                location.reload(); // Reload the page to update the table
+            } else {
+                alert('Failed to process appeal');
+            }
+        } catch (error) {
+            console.error('Error processing appeal:', error);
+            alert('An error occurred while processing the appeal');
+        }
+    }
+    async function loadData() {
+        await fetchAttendance();
+        await fetchCourseIds();
+        await fetchAppeals();
+    }
+    // Call the function when the page loads
+    // window.onload = fetchCourseIds;
+    window.onload = loadData;
+</script>
+</body>
+</html>
