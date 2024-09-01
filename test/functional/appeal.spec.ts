@@ -114,13 +114,10 @@ describe('AppealController Functional Tests with Database', () => {
     it('should approve an appeal record successfully', async () => {
         const data = { uin: '12345678', courseId: '3004', checkInTime: new Date(), reason: 'Valid Reason' };
         // First, create a new appeal record directly via the database or service
-        const newAppeal = await request(app)
-            .post('/appeal/new')
-            .send(data);
-
         const appealModel = new AppealModel();
         const attendanceModel = new AttendanceModel();
     
+        await appealModel.insertAppealRecord(data.uin, data.courseId, data.checkInTime, data.reason);
         const record = await appealModel.findAppealRecordByCourseIdAndUIN(data.uin, data.courseId);
         
         // Then, approve the appeal
@@ -141,13 +138,11 @@ describe('AppealController Functional Tests with Database', () => {
     it('should reject an appeal record successfully', async () => {
         const data = { uin: '12345678', courseId: '3004', checkInTime: new Date(), reason: 'Valid Reason' };
         // First, create a new appeal record directly via the database or service
-        const newAppeal = await request(app)
-            .post('/appeal/new')
-            .send(data);
 
         const appealModel = new AppealModel();
         const attendanceModel = new AttendanceModel();
     
+        await appealModel.insertAppealRecord(data.uin, data.courseId, data.checkInTime, data.reason);
         const record = await appealModel.findAppealRecordByCourseIdAndUIN(data.uin, data.courseId);
         
         // Then, approve the appeal

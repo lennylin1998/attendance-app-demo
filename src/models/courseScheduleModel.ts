@@ -9,7 +9,7 @@ export class CourseScheduleModel {
     }
 
     async findCourseScheduleByUIN(uin: string) {
-        return this.courseScheduleCollection.find(
+        return await this.courseScheduleCollection.find(
             { uin: uin },
             { projection: { _id: 0, uin: 0 } }
         ).toArray();

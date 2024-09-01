@@ -11,7 +11,7 @@ export class AppealModel {
     }
 
     async findAllAppealRecords(): Promise<any[] | null> {
-        return this.appealCollection.aggregate([
+        return await this.appealCollection.aggregate([
             {
                 $lookup: {
                     from: 'student',
@@ -33,22 +33,22 @@ export class AppealModel {
     };
 
     async findAppealRecordByCourseIdAndUIN(uin: string, courseId: string) : Promise<AppealRecord | null> {
-        return this.appealCollection.findOne({ uin: uin, courseId: courseId });
+        return await this.appealCollection.findOne({ uin: uin, courseId: courseId });
     };
 
     async findAppealRecordByAppealId(_id: string) : Promise<AppealRecord | null> {
         if (!ObjectId.isValid(_id)) {
             return null;
         }
-        return this.appealCollection.findOne({ _id: new ObjectId(_id) });
+        return await this.appealCollection.findOne({ _id: new ObjectId(_id) });
     };
 
     async insertAppealRecord(uin: string, courseId: string, checkInTime: Date, reason: string): Promise<void> {
-        this.appealCollection.insertOne({ uin, courseId, checkInTime, reason, status: Status.PENDING });
+        await this.appealCollection.insertOne({ uin, courseId, checkInTime, reason, status: Status.PENDING });
     };
 
     async editAppealRecord(_id: string, status: Status): Promise<void> {
-        this.appealCollection.updateOne(
+        await this.appealCollection.updateOne(
             { _id: new ObjectId(_id) },
             { $set: { 'status': status } }
         );

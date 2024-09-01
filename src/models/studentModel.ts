@@ -10,7 +10,7 @@ export class StudentModel {
     }
 
     async findStudentByUIN(uin: string): Promise<Omit<Student, 'uin'> | null> {
-        return this.studentCollection.findOne(
+        return await this.studentCollection.findOne(
             { uin: uin },
             { projection: { _id: 0, uin: 0 } }
         );

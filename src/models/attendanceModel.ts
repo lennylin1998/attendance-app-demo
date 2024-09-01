@@ -11,18 +11,18 @@ export class AttendanceModel {
     }
 
     async findAttendanceByUIN(uin: string): Promise<IAttendance[] | null> {
-        return this.attendanceCollection.find(
+        return await this.attendanceCollection.find(
             { uin: uin },
             { projection: { _id: 0, uin: 0 } }
         ).toArray();
     };
 
     async findAttendanceByCourseIdAndUIN(uin: string, courseId: string): Promise<IAttendance | null> {
-        return this.attendanceCollection.findOne({ uin: uin, courseId: courseId });
+        return await this.attendanceCollection.findOne({ uin: uin, courseId: courseId });
     };
 
     async insertAttendanceRecord(attendance: IAttendance): Promise<void> {
-        this.attendanceCollection.insertOne(attendance);
+        await this.attendanceCollection.insertOne(attendance);
     };
 
 }
